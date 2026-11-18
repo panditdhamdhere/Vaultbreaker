@@ -28,3 +28,5 @@ A future value-transfer version requires a separate game contract or authoritati
 ## Paid testnet work
 
 `contracts/Vaultbreaker.sol` and `app/testnet` prepare a paid test-token flow on Robinhood Testnet. The route remains gated until verified contract addresses are configured. See [the proposed economics and deployment dependencies](docs/paid-testnet.md). Run `forge test --offline` for the contract's focused tests.
+
+The [wallet deployment handoff](docs/testnet-deployment.md) covers a fresh Registry, test token, Operator Router, game contract, bankroll, and testnet validation. It does not broadcast transactions or include signing credentials.
