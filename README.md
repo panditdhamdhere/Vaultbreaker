@@ -21,7 +21,7 @@ Open `http://localhost:3000`. `npm run build` checks TypeScript and produces a s
 
 ## Deploy on Vercel
 
-Import `panditdhamdhere/Vaultbreaker` as a Next.js project. Leave **Root Directory** at the repository root (`./` or blank) and keep the detected build settings. Until PR #1 is merged, deploy the `feat/vaultbreaker-game` branch as a Preview; the default `main` branch does not yet contain the game. Free play needs no environment variables. Leave `NEXT_PUBLIC_VAULTBREAKER_ADDRESS` unset so the testnet route stays gated. After contract deployment and verification, set the public contract address and a reliable `NEXT_PUBLIC_RH_TESTNET_RPC`, then rebuild. Do not put signing credentials in `NEXT_PUBLIC_` variables.
+Import `panditdhamdhere/Vaultbreaker` as a Next.js project. Leave **Root Directory** at the repository root (`./` or blank) and keep the detected build settings. Free play needs no environment variables. Leave `NEXT_PUBLIC_VAULTBREAKER_ADDRESS` unset so the testnet route stays gated. After contract deployment and verification, set the public contract address, its runtime code hash in `NEXT_PUBLIC_VAULTBREAKER_CODE_HASH`, and a reliable `NEXT_PUBLIC_RH_TESTNET_RPC`, then rebuild. Do not put signing credentials in `NEXT_PUBLIC_` variables.
 
 ## Release boundary
 
@@ -34,3 +34,5 @@ The testnet value-transfer route uses a separate contract to lock player choices
 `contracts/Vaultbreaker.sol` and `app/testnet` prepare a paid test-token flow on Robinhood Testnet. The route remains gated until verified contract addresses are configured. See [the proposed economics and deployment dependencies](docs/paid-testnet.md). Run `forge test --offline` for the contract's focused tests.
 
 The [wallet deployment handoff](docs/testnet-deployment.md) covers a fresh Registry, test token, Operator Router, game contract, bankroll, and testnet validation. It does not broadcast transactions or include signing credentials.
+
+[Testnet release readiness](docs/release-readiness.md) records the completed checks and remaining deployment gates.

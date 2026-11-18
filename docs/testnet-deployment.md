@@ -33,11 +33,11 @@ Confirm each transaction in the browser wallet, wait for its receipt, and record
 5. On ADMIN, call bindRouter(ROUTER).
 6. On ROUTER, call bootstrapOperators(100) repeatedly. Check nextOperatorId() after each receipt. Continue until it is 5556, then call finalizeBootstrap(). Use smaller batches if the wallet estimates excessive gas. Do not send a duplicate batch while a prior receipt is uncertain.
 7. On ADMIN, call registerRewardAsset(TOKEN). Confirm bootstrapFinalized(), isRewardAsset(TOKEN), and rewardAssetEnabled(TOKEN) on the Router.
-8. Deploy Vaultbreaker with arguments TOKEN, REGISTRY, ROUTER, owner address, and 1000000 (1 VTEST). Save GAME. Use a multisig owner if available. The game reserves maximum live-run liabilities before accepting a run.
+8. Deploy Vaultbreaker with arguments TOKEN, REGISTRY, ROUTER, owner address, and 1000000 (1 VTEST). Save GAME. Use a multisig owner if available. The game reserves maximum live-run liabilities before accepting a run. The owner can pause new entries with setPaused(true) while existing runs remain settleable and withdrawable.
 9. On TOKEN, call approve(GAME, 10000000000); then on GAME, call fund(10000000000). This is 10,000 VTEST. At 11.390625 VTEST reserved per active run, the initial bankroll backs at most 877 simultaneous worst-case runs before other liabilities and payouts affect the balance.
 
 Confirm game configuration, reserved(), and its token balance. From a second wallet, claim faucet tokens, approve an entry, start a run, wait for its selected future beacon, resolve with the published signature, and cash out or advance. Verify 0.1 VTEST entered the Router reward book and check the payout receipt. Rehearse cache, relic, and trap outcomes over several rounds.
 
 ## Site activation
 
-Record all addresses, runtime code hashes, transaction hashes, source commits, compiler settings, and observed outcomes in a testnet deployment manifest. Set NEXT_PUBLIC_VAULTBREAKER_ADDRESS to the verified GAME address and NEXT_PUBLIC_RH_TESTNET_RPC to a reliable endpoint, then rebuild and publish. The /testnet route remains gated until then. Require a separate decision before any real-value launch.
+Record all addresses, runtime code hashes, transaction hashes, source commits, compiler settings, and observed outcomes in a testnet deployment manifest. Set NEXT_PUBLIC_VAULTBREAKER_ADDRESS to the verified GAME address, NEXT_PUBLIC_VAULTBREAKER_CODE_HASH to its runtime Keccak-256 hash, and NEXT_PUBLIC_RH_TESTNET_RPC to a reliable endpoint, then rebuild and publish. The /testnet route remains gated until then. Require a separate decision before any real-value launch.
