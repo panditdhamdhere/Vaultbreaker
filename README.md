@@ -4,9 +4,9 @@ A fast, free-play risk-and-reward vault game built with Next.js 16.4.6, React 19
 
 ## Play
 
-Each run has six chambers. Every chamber has three doors: one trap, one cache, and one relic. A cache earns the chamber's base points; a relic earns double. After a safe reveal, bank the accumulated points or go deeper. A trap loses the unbanked haul. One scanner per run exposes a trap door before choosing.
+Each run has six chambers. Every chamber has three doors: one trap, one cache, and one relic. A virtual 1.00× claim starts the run. Cache multiplies it by 1.10×, relic by 1.50×, and trap loses the unbanked claim. After a safe reveal, bank the multiplier or go deeper. Free play uses the same claim math as the testnet contract but awards no tokens.
 
-Best banked score is saved on the current device.
+The best banked multiplier is saved on the current device.
 
 ## Develop
 
@@ -19,11 +19,15 @@ npm run dev
 
 Open `http://localhost:3000`. `npm run build` checks TypeScript and produces a static export in `out/`.
 
+## Deploy on Vercel
+
+Import `panditdhamdhere/Vaultbreaker` as a Next.js project. Leave **Root Directory** at the repository root (`./` or blank) and keep the detected build settings. Until PR #1 is merged, deploy the `feat/vaultbreaker-game` branch as a Preview; the default `main` branch does not yet contain the game. Free play needs no environment variables. Leave `NEXT_PUBLIC_VAULTBREAKER_ADDRESS` unset so the testnet route stays gated. After contract deployment and verification, set the public contract address and a reliable `NEXT_PUBLIC_RH_TESTNET_RPC`, then rebuild. Do not put signing credentials in `NEXT_PUBLIC_` variables.
+
 ## Release boundary
 
-This first release is **free play**. Outcomes use browser cryptographic randomness. Scores are local and are not tamper-resistant. There are no wallets, entry fees, payouts, or smart contract interactions. The UI makes that boundary visible.
+This first release is **free play**. Outcomes use browser cryptographic randomness. Scores are local and are not tamper-resistant. There are no wallets, entry fees, payouts, or smart contract interactions on the free-play route. The UI makes that boundary visible.
 
-A future value-transfer version requires a separate game contract or authoritative service to lock player choices and a future drand round before that round's scheduled publication, settle using the verified output of [EqualFi Drand Registry](https://github.com/EqualFiLabs/drand-registry), and account for any supported ERC-20 revenue before routing an agreed share through [Operator Fee Router](https://github.com/EqualFiLabs/operator-fee-router). Those features are not implied by this release.
+The testnet value-transfer route uses a separate contract to lock player choices and a future drand round before that round's scheduled publication, settle using the verified output of [EqualFi Drand Registry](https://github.com/EqualFiLabs/drand-registry), and route the agreed entry share through [Operator Fee Router](https://github.com/EqualFiLabs/operator-fee-router). It remains gated until those dependencies and the funded game are deployed and verified.
 
 ## Paid testnet work
 

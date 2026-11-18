@@ -147,6 +147,6 @@ export default function TestnetPage() {
         {!run.active && <button onClick={() => { localStorage.removeItem(`vaultbreakerRun:${wallet.toLowerCase()}`); setRunId(undefined); setRun(undefined); }}>START A NEW RUN</button>}
       </>}
     </div>}
-    <p style={{ marginTop: 30, color: '#a7977c', fontSize: 13 }}>Test tokens have no monetary value here. This interface is gated until a testnet Registry, Router, token, and funded game contract are deployed and validated. The free-play scanner is unavailable in paid mode because the future beacon cannot reveal a trap in advance.</p>
+    <p style={{ marginTop: 30, color: '#a7977c', fontSize: 13 }}>Test tokens have no monetary value here. This interface is gated until a testnet Registry, Router, token, and funded game contract are deployed and validated. Free play uses virtual multipliers and browser randomness; paid rounds use a future verified beacon.</p>
   </main>;
 }
