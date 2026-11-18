@@ -9,6 +9,7 @@ This design is for Robinhood Testnet (chain ID 46630) and a test ERC-20. It does
 - The remaining entry enters the game bankroll. The bankroll also needs external prefunding. The contract will not accept a run unless it holds at least the maximum possible payout for every active run.
 - Six stages. Each stage has one trap, one cache, and one relic. Trap loses the unbanked claim. Cache multiplies the claim by **1.10**; relic by **1.50**. A player can cash out after a safe result or choose a new door for the next stage.
 - A full six-relic run pays at most **11.390625×** entry. The contract reserves that amount for *every* active run, a conservative solvency rule.
+- The owner can pause new entries during an incident. Existing runs can still resolve, advance, and cash out.
 - Each stage's unconditional claim multiplier is `(0 + 1.10 + 1.50) / 3 = 0.8667`. This is the expected payout if the player banks immediately after that stage, before network costs. It is a theoretical value, not an observed return or launch promise.
 
 ## Trust and settlement
