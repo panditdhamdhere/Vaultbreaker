@@ -21,6 +21,8 @@ const tokenAbi = parseAbi([
   'function symbol() view returns (string)',
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount) returns (bool)',
+  'function claimFaucet()',
+  'function balanceOf(address owner) view returns (uint256)',
 ]);
 const registryAbi = parseAbi(['function hasSig(uint64 round) view returns (bool)']);
 type RunView = { round: bigint; stage: number; credits: bigint; active: boolean; awaiting: boolean };
@@ -32,6 +34,7 @@ export default function TestnetPage() {
   const [entry, setEntry] = useState<bigint>();
   const [decimals, setDecimals] = useState(18);
   const [symbol, setSymbol] = useState('TOKEN');
+  const [balance, setBalance] = useState<bigint>();
   const [runId, setRunId] = useState<bigint>();
   const [run, setRun] = useState<RunView>();
   const [busy, setBusy] = useState(false);
@@ -61,6 +64,7 @@ export default function TestnetPage() {
         publicClient.readContract({ address: asset, abi: tokenAbi, functionName: 'symbol' }),
       ]);
       setWallet(account); setToken(asset); setEntry(amount); setDecimals(d); setSymbol(s);
+      setBalance(await publicClient.readContract({ address: asset, abi: tokenAbi, functionName: 'balanceOf', args: [account] }));
       const saved = localStorage.getItem(`vaultbreakerRun:${account.toLowerCase()}`);
       if (saved) {
         const id = BigInt(saved);
@@ -70,6 +74,18 @@ export default function TestnetPage() {
         } else localStorage.removeItem(`vaultbreakerRun:${account.toLowerCase()}`);
       } else setMessage('Connected. Choose one of three doors to lock a future beacon.');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Wallet connection failed.'); }
+    finally { setBusy(false); }
+  }
+
+  async function claimFaucet() {
+    if (!walletClient || !wallet || !token) return;
+    try {
+      setBusy(true);
+      const hash = await walletClient.writeContract({ address: token, abi: tokenAbi, functionName: 'claimFaucet', account: wallet, chain });
+      await publicClient.waitForTransactionReceipt({ hash });
+      setBalance(await publicClient.readContract({ address: token, abi: tokenAbi, functionName: 'balanceOf', args: [wallet] }));
+      setMessage('Test tokens claimed.');
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Faucet claim failed.'); }
     finally { setBusy(false); }
   }
 
@@ -123,6 +139,7 @@ export default function TestnetPage() {
     <button disabled={busy || !configured} onClick={connect}>{wallet ? `Wallet ${wallet.slice(0, 6)}…${wallet.slice(-4)}` : 'CONNECT WALLET'}</button>
     {wallet && <div style={{ marginTop: 28, border: '1px solid #68533a', padding: 20 }}>
       <p>Entry: {entry !== undefined ? formatUnits(entry, decimals) : '…'} {symbol} · Operator fee: 10% · Chain: Robinhood Testnet</p>
+      <p>Wallet balance: {balance !== undefined ? formatUnits(balance, decimals) : '…'} {symbol} <button disabled={busy} onClick={claimFaucet}>CLAIM TEST TOKENS</button></p>
       {!runId && <><h2>Choose your first door</h2>{[0, 1, 2].map(i => <button key={i} disabled={busy} onClick={() => transact('start', i)} style={{ margin: 6 }}>DOOR {i + 1}</button>)}</>}
       {runId && run && <><p>Run #{runId.toString()} · Chamber {run.stage}/6 · Locked round {run.round.toString()}</p><p>Current claim: {formatUnits(run.credits, decimals)} {symbol}</p>
         {run.active && run.awaiting && <button disabled={busy} onClick={() => transact('resolve')}>RESOLVE WITH DRAND</button>}
