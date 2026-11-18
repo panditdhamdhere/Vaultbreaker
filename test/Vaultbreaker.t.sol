@@ -73,7 +73,7 @@ contract MockRouter is IGameRouter {
 
     function addRewards(address asset, uint256 amount) external {
         require(asset == address(token));
-        token.transferFrom(msg.sender, address(this), amount);
+        require(token.transferFrom(msg.sender, address(this), amount));
         totalAdded += amount;
     }
 }

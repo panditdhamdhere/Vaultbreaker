@@ -18,7 +18,7 @@ contract TestTokenTest {
         assert(token.balanceOf(address(this)) == initial + 100e6);
         (bool second,) = address(token).call(abi.encodeWithSelector(token.claimFaucet.selector));
         assert(!second);
-        token.transfer(address(0xBEEF), 7e6);
+        assert(token.transfer(address(0xBEEF), 7e6));
         assert(token.balanceOf(address(0xBEEF)) == 7e6);
     }
 }
