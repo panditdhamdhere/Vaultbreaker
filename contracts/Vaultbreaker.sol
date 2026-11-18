@@ -29,6 +29,7 @@ contract Vaultbreaker {
     error TransferFailed();
     error ReentrantCall();
     error InvalidRound();
+    error Paused();
 
     struct Run {
         address player;
@@ -48,6 +49,7 @@ contract Vaultbreaker {
     uint256 public immutable maximumPayout;
     uint256 public reserved;
     uint256 public nextRunId = 1;
+    bool public paused;
     mapping(uint256 => Run) public runs;
     bool private entered;
 
@@ -62,6 +64,7 @@ contract Vaultbreaker {
     event CashedOut(uint256 indexed runId, address indexed player, uint256 payout);
     event ReserveFunded(address indexed source, uint256 amount);
     event SurplusWithdrawn(address indexed to, uint256 amount);
+    event PauseSet(bool paused);
 
     modifier nonReentrant() {
         if (entered) revert ReentrantCall();
@@ -88,7 +91,15 @@ contract Vaultbreaker {
         emit ReserveFunded(msg.sender, amount);
     }
 
+    /// @notice Stop new entries without blocking settlement or existing players' cash-outs.
+    function setPaused(bool value) external {
+        if (msg.sender != owner) revert NotOwner();
+        paused = value;
+        emit PauseSet(value);
+    }
+
     function start(uint8 choice) external nonReentrant returns (uint256 runId) {
+        if (paused) revert Paused();
         if (choice >= 3) revert InvalidChoice();
         _pull(msg.sender, entryAmount);
         uint256 fee = entryAmount * ROUTER_FEE_BPS / BPS;

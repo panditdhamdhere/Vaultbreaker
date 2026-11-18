@@ -6,6 +6,7 @@ import "../contracts/Vaultbreaker.sol";
 interface Vm {
     function warp(uint256 timestamp) external;
     function chainId(uint256 newChainId) external;
+    function prank(address sender) external;
 }
 
 contract MockToken is IGameToken {
@@ -72,7 +73,7 @@ contract MockRouter is IGameRouter {
 
     function addRewards(address asset, uint256 amount) external {
         require(asset == address(token));
-        token.transferFrom(msg.sender, address(this), amount);
+        require(token.transferFrom(msg.sender, address(this), amount));
         totalAdded += amount;
     }
 }
@@ -114,6 +115,71 @@ contract VaultbreakerTest {
             if (relicDoor == choice) return candidate;
         }
         revert("relic seed not found");
+    }
+
+    function _cacheSeed(uint256 runId, uint8 stage, uint8 choice) private pure returns (bytes32) {
+        for (uint256 n = 1; n < 1000; n++) {
+            bytes32 candidate = bytes32(n);
+            bytes32 hash = keccak256(abi.encode(candidate, runId, stage));
+            uint8 trapDoor = uint8(uint256(hash) % 3);
+            uint8 relicDoor = uint8((trapDoor + 1 + ((uint256(hash) >> 8) % 2)) % 3);
+            if (choice != trapDoor && choice != relicDoor) return candidate;
+        }
+        revert("cache seed not found");
+    }
+
+    function testCacheAndRelicPayExactClaims() public {
+        uint256 before = token.balanceOf(address(this));
+        uint256 cacheId = game.start(0);
+        (, uint64 cacheRound,,,,,) = game.runs(cacheId);
+        vm.warp(registry.roundTime(cacheRound));
+        assert(game.resolve(cacheId, abi.encode(_cacheSeed(cacheId, 1, 0))) == 1);
+        (,,,, uint128 cacheCredits,,) = game.runs(cacheId);
+        assert(cacheCredits == 1_100_000);
+        game.cashOut(cacheId);
+        assert(token.balanceOf(address(this)) == before + 100_000);
+
+        uint256 relicId = game.start(0);
+        (, uint64 relicRound,,,,,) = game.runs(relicId);
+        vm.warp(registry.roundTime(relicRound));
+        assert(game.resolve(relicId, abi.encode(_relicSeed(relicId, 1, 0))) == 2);
+        (,,,, uint128 relicCredits,,) = game.runs(relicId);
+        assert(relicCredits == 1_500_000);
+        game.cashOut(relicId);
+        assert(token.balanceOf(address(this)) == before + 600_000);
+        assert(router.totalAdded() == 200_000);
+    }
+
+    function testConcurrentRunsCannotExceedReserve() public {
+        uint256 firstId = game.start(0);
+        (bool second,) = address(game).call(abi.encodeWithSelector(game.start.selector, uint8(1)));
+        assert(!second);
+        assert(game.reserved() == game.maximumPayout());
+        (, uint64 round,,,,,) = game.runs(firstId);
+        vm.warp(registry.roundTime(round));
+        game.resolve(firstId, abi.encode(_seedFor(true, firstId, 1, 0)));
+        assert(game.reserved() == 0);
+        assert(game.start(1) == firstId + 1);
+    }
+
+    function testPauseStopsNewEntriesButPreservesCashOut() public {
+        uint256 id = game.start(0);
+        game.setPaused(true);
+        (bool newEntry,) = address(game).call(abi.encodeWithSelector(game.start.selector, uint8(1)));
+        assert(!newEntry);
+        (, uint64 round,,,,,) = game.runs(id);
+        vm.warp(registry.roundTime(round));
+        game.resolve(id, abi.encode(_cacheSeed(id, 1, 0)));
+        game.cashOut(id);
+        assert(game.reserved() == 0);
+        game.setPaused(false);
+        assert(game.start(1) == id + 1);
+    }
+
+    function testOnlyOwnerCanPause() public {
+        vm.prank(address(0xBEEF));
+        (bool ok,) = address(game).call(abi.encodeWithSelector(game.setPaused.selector, true));
+        assert(!ok && !game.paused());
     }
 
     function testSafeRunRoutesFeeAndPaysClaim() public {
