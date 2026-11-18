@@ -26,6 +26,10 @@ Use EqualFiLabs/drand-registry at a pinned commit, with recursive submodules. It
 
 Record the confirmed REGISTRY address and transaction hash. Post the official Quicknet signature for round 20791007 from docs/quicknet.md. Confirm hasSig and randomnessOf for that round on testnet. This checks the actual chain precompile behavior, which local tests cannot prove.
 
+    cast send "$REGISTRY" 'postSig(uint64,bytes)' 20791007 0x8d2c8bbc37170dbacc5e280a21d4e195cff5f32a19fd6a58633fa4e4670478b5fb39bc13dd8f8c4372c5a76191198ac5 --rpc-url "$RH_TESTNET_RPC" --account "$ACCOUNT"
+    cast call "$REGISTRY" 'hasSig(uint64)(bool)' 20791007 --rpc-url "$RH_TESTNET_RPC"
+    cast call "$REGISTRY" 'randomnessOf(uint64)(bytes32)' 20791007 --rpc-url "$RH_TESTNET_RPC"
+
 ## Test token
 
 From this Vaultbreaker repo, deploy TestToken. It has six decimals, grants the deployer one million VTEST, and lets each wallet claim 100 VTEST once. VTEST has no monetary value.
