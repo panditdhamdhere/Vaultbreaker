@@ -39,22 +39,64 @@ export default function Game() {
   });
   const resolved = g.phase === 'revealing' && g.selected !== null && g.log !== 'Opening vault door…';
   const showDoors = g.phase === 'choosing' || g.phase === 'revealing' || g.phase === 'busted' || g.phase === 'banked' && g.doors.length > 0;
-  return <div className="shell">
-    <header className="header"><div className="brand"><span className="brand-icon">◆</span> VAULT<span>BREAKER</span></div><div className="nav-status"><i/> FREE PLAY <span>EARLY ACCESS</span></div></header>
-    <main className="layout">
-      <section className="intro"><div className="eyebrow">RISK. REVEAL. REPEAT.</div><h1>One more<br/><em>door?</em></h1><p>Six chambers. Three doors each: a trap, a cache, and a relic. Bank your claim or risk it in the next chamber.</p><div className="steps"><div><b>01</b><span>CHOOSE</span><small>Pick one of three doors</small></div><div><b>02</b><span>REVEAL</span><small>Cache 1.10× · Relic 1.50×</small></div><div><b>03</b><span>DECIDE</span><small>Bank it or risk it</small></div></div><div className="notice"><strong>FREE-PLAY RULES</strong><p>Start at 1.00×. Safe doors multiply your claim; a trap ends the run. This demo uses browser randomness and awards no tokens.</p></div></section>
-      <section className="game"><div className="game-top"><span><i/> {g.phase === 'ready' ? 'VAULT CLOSED' : g.phase === 'choosing' ? 'CHOOSE YOUR DOOR' : g.phase === 'revealing' ? 'VAULT REVEAL' : g.phase === 'busted' ? 'RUN ENDED' : 'CLAIM SECURED'}</span><b>CHAMBER {String(g.chamber).padStart(2, '0')} / 06</b></div><div className="progress">{Array.from({ length: MAX }, (_, i) => <span key={i} className={i < g.chamber ? 'lit' : ''}/>)}</div>
-        <div className="stage"><div className="glow"/><div className="arch"><span>◈</span><strong>THE VAULT</strong><small>{g.phase === 'ready' ? 'PRESS ENTER TO BEGIN' : 'CHOOSE WISELY'}</small></div>
-          {showDoors && <div className="doors">{[0, 1, 2].map(i => {
-            const chosen = g.selected === i; const revealed = chosen && g.phase !== 'choosing' && g.log !== 'Opening vault door…';
-            return <button key={i} className={'door ' + (chosen ? 'chosen ' : '') + (revealed ? g.doors[i] : '')} onClick={() => choose(i)} disabled={g.phase !== 'choosing'} aria-label={'Door ' + (i + 1)}><span className="door-number">0{i + 1}</span><span className="door-symbol">{revealed ? g.doors[i] === 'trap' ? '✕' : g.doors[i] === 'relic' ? '✦' : '◆' : '◇'}</span><span className="door-label">{revealed ? g.doors[i].toUpperCase() : 'OPEN'}</span></button>;
-          })}</div>}
-          {g.phase === 'ready' && <div className="center-action"><button onClick={start}>ENTER THE VAULT <span>↗</span></button></div>}
-          {(g.phase === 'busted' || g.phase === 'banked') && <div className="center-action result"><strong>{g.phase === 'busted' ? 'BUSTED' : 'SECURED'}</strong><span>{g.phase === 'banked' ? formatClaim(g.banked) + ' CLAIM' : 'YOUR UNBANKED CLAIM WAS LOST'}</span><button onClick={start}>PLAY AGAIN <span>↗</span></button></div>}
-        </div><div className="game-bottom"><span>{g.log}</span></div>
-        {resolved && <div className="decision"><button className="bank" onClick={bank}>BANK {formatClaim(g.haul)} CLAIM</button><button className="push" onClick={continueRun}>GO DEEPER <span>→</span></button></div>}
-      </section>
-      <aside className="stats"><div className="stat main-stat"><span>UNBANKED CLAIM</span><strong>{formatClaim(g.haul)}</strong><small>VIRTUAL MULTIPLIER AT RISK</small></div><div className="stat"><span>SAFE DOORS</span><strong>1.10×<small> CACHE</small></strong><div>RELIC MULTIPLIES BY <b>1.50×</b></div></div><div className="stat"><span>BEST BANKED RUN</span><strong>{formatClaim(g.best)}</strong><div>STORED ON THIS DEVICE</div></div><div className="odds"><b>THE ODDS</b><div><span>SAFE DOOR</span><strong>2 IN 3</strong></div><div><span>TRAP DOOR</span><strong>1 IN 3</strong></div><p>Each chamber has one trap, one cache, and one relic. Outcomes in this demo use browser randomness.</p></div></aside>
-    </main><footer>FREE-PLAY GAME DEMO · VIRTUAL MULTIPLIERS ONLY · NO WALLET, ENTRY FEE OR PAYOUT · RESULTS ARE NOT ON-CHAIN VERIFIED. <a href="/testnet" style={{ color: '#e5bd78', marginLeft: 12 }}>TESTNET STATUS →</a></footer>
-  </div>;
+  return (
+    <div className="app-shell">
+      <header className="topbar">
+        <a className="brand" href="/" aria-label="Vaultbreaker home"><span className="brand-mark">◆</span><span>VAULT<span className="brand-accent">BREAKER</span></span></a>
+        <nav className="topnav" aria-label="Game navigation">
+          <span className="mode-pill"><span className="status-dot" /> FREE PLAY</span>
+          <a href="/testnet">Testnet status</a>
+        </nav>
+      </header>
+
+      <main className="main-content">
+        <section className="hero" aria-labelledby="game-title">
+          <div className="hero-copy">
+            <span className="eyebrow">THE SIX CHAMBER CHALLENGE</span>
+            <h1 id="game-title">One more <em>door?</em></h1>
+            <p>Choose a door. Grow your claim. Bank it when you’re ready—or risk everything in the next chamber.</p>
+          </div>
+          <div className="hero-rule" aria-label="Door outcomes">
+            <span><b>1</b> TRAP</span>
+            <span><b>1</b> CACHE</span>
+            <span><b>1</b> RELIC</span>
+          </div>
+        </section>
+
+        <div className="play-layout">
+          <section className="vault-panel" aria-label="Vaultbreaker game">
+            <div className="vault-head">
+              <div><span className="section-kicker">CURRENT RUN</span><h2>{g.phase === 'ready' ? 'Enter the vault' : g.phase === 'choosing' ? 'Choose your door' : g.phase === 'revealing' ? 'Door revealed' : g.phase === 'busted' ? 'Run ended' : 'Claim secured'}</h2></div>
+              <span className="chamber-count">CHAMBER <strong>{String(g.chamber).padStart(2, '0')} / 06</strong></span>
+            </div>
+            <div className="progress" aria-label={'Chamber ' + g.chamber + ' of six'}>{Array.from({ length: MAX }, (_, i) => <span key={i} className={i < g.chamber ? 'lit' : ''} />)}</div>
+
+            <div className={'stage stage-' + g.phase}>
+              <div className="stage-orbit" aria-hidden="true"><span>◆</span></div>
+              {showDoors && <div className="doors">{[0, 1, 2].map(i => {
+                const chosen = g.selected === i;
+                const revealed = chosen && g.phase !== 'choosing' && g.log !== 'Opening vault door…';
+                const outcome = g.doors[i];
+                return <button key={i} className={'door ' + (chosen ? 'chosen ' : '') + (revealed ? outcome : '')} onClick={() => choose(i)} disabled={g.phase !== 'choosing'} aria-label={'Door ' + (i + 1) + (revealed ? ', ' + outcome : '')}><span className="door-number">DOOR {i + 1}</span><span className="door-symbol" aria-hidden="true">{revealed ? outcome === 'trap' ? '×' : outcome === 'relic' ? '✦' : '◆' : '◇'}</span><span className="door-label">{revealed ? outcome.toUpperCase() : 'OPEN'}</span></button>;
+              })}</div>}
+              {g.phase === 'ready' && <div className="center-action"><span className="center-icon" aria-hidden="true">◆</span><span className="center-kicker">YOUR RUN STARTS HERE</span><strong>How far will you go?</strong><p>One trap hides behind every set of doors.</p><button className="primary-button" onClick={start}>Enter the vault</button></div>}
+              {(g.phase === 'busted' || g.phase === 'banked') && <div className="center-action result"><span className="center-icon" aria-hidden="true">{g.phase === 'busted' ? '×' : '✦'}</span><span className="center-kicker">{g.phase === 'busted' ? 'RUN OVER' : 'CLAIM SECURED'}</span><strong>{g.phase === 'busted' ? 'The trap got you.' : formatClaim(g.banked) + ' banked'}</strong><p>{g.phase === 'busted' ? 'Your unbanked claim was lost.' : 'Your best banked run is saved on this device.'}</p><button className="primary-button" onClick={start}>Play again</button></div>}
+            </div>
+
+            <div className="game-bottom" role="status" aria-live="polite"><span className="status-signal" aria-hidden="true" />{g.log}</div>
+            {resolved && <div className="decision"><button className="primary-button" onClick={bank}>Bank {formatClaim(g.haul)}</button><button className="secondary-button" onClick={continueRun}>Go deeper</button></div>}
+          </section>
+
+          <aside className="intel-panel" aria-label="Run information">
+            <div className="claim-card"><span className="section-kicker">UNBANKED CLAIM</span><strong>{formatClaim(g.haul)}</strong><p>Virtual multiplier at risk</p><span className="claim-glow" aria-hidden="true" /></div>
+            <div className="intel-card"><span className="section-kicker">THE PAYOUTS</span><div className="payout-row"><span className="outcome-icon cache-icon">◆</span><span>Cache<small>Safe door</small></span><strong>1.10×</strong></div><div className="payout-row"><span className="outcome-icon relic-icon">✦</span><span>Relic<small>Safe door</small></span><strong>1.50×</strong></div><div className="payout-row"><span className="outcome-icon trap-icon">×</span><span>Trap<small>Run ends</small></span><strong>0×</strong></div></div>
+            <div className="intel-card best-card"><span className="section-kicker">PERSONAL BEST</span><strong>{formatClaim(g.best)}</strong><p>Best banked run on this device</p></div>
+          </aside>
+        </div>
+
+        <section className="rules-strip" aria-label="How the game works"><div><span>01</span><strong>Choose</strong><p>Pick one of three doors.</p></div><div><span>02</span><strong>Reveal</strong><p>Find a cache, relic, or trap.</p></div><div><span>03</span><strong>Decide</strong><p>Bank your claim or continue.</p></div></section>
+      </main>
+      <footer className="site-footer"><span>FREE-PLAY DEMO · VIRTUAL MULTIPLIERS ONLY · NO ENTRY FEE OR PAYOUT · BROWSER RANDOMNESS</span><a href="/testnet">View testnet status</a></footer>
+    </div>
+  );
 }

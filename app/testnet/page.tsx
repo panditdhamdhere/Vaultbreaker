@@ -217,23 +217,33 @@ export default function TestnetPage() {
     finally { setBusy(false); }
   }
 
-  return <main style={{ maxWidth: 760, margin: '50px auto', padding: 24, color: '#f7f3e8', fontFamily: 'Arial,sans-serif' }}>
-    <a href="/" style={{ color: '#e5bd78' }}>← Free-play game</a><h1 style={{ fontSize: 48, margin: '28px 0 10px' }}>Vaultbreaker Testnet</h1>
-    <p style={{ color: '#c9bba3', lineHeight: 1.6 }}>Paid test-token rounds use a future verified drand beacon and route a 10% entry fee to the configured Operator Fee Router. Every transaction requires wallet confirmation and testnet gas.</p>
-    {!configured && <p style={{ border: '1px solid #d8ac66', padding: 18, color: '#e5bd78' }}>Testnet play is gated. Configure the verified game address and runtime code hash after the contract and its dependencies are deployed. No paid entry is available.</p>}
-    <p aria-live="polite" style={{ minHeight: 40 }}>{message}</p>
-    <button disabled={busy || !configured} onClick={connect}>{wallet ? `Wallet ${wallet.slice(0, 6)}…${wallet.slice(-4)}` : 'CONNECT WALLET'}</button>
-    {wallet && <div style={{ marginTop: 28, border: '1px solid #68533a', padding: 20 }}>
-      <p>Entry: {entry !== undefined ? formatUnits(entry, decimals) : '…'} {symbol} · Operator fee: 10% · Chain: Robinhood Testnet</p>
-      {paused && <p role="status">New entries are paused. Existing runs can still resolve and cash out.</p>}
-      <p>Wallet balance: {balance !== undefined ? formatUnits(balance, decimals) : '…'} {symbol} <button disabled={busy} onClick={claimFaucet}>CLAIM TEST TOKENS</button></p>
-      {!runId && <><h2>Choose your first door</h2>{[0, 1, 2].map(i => <button key={i} disabled={busy || paused} onClick={() => transact('start', i)} style={{ margin: 6 }}>DOOR {i + 1}</button>)}<p>Have an active run from another browser session? Enter its on-chain run ID from the start transaction.</p><input aria-label="Run ID" inputMode="numeric" value={recoveryId} onChange={event => setRecoveryId(event.target.value)} style={{ padding: 8, marginRight: 8 }} /><button disabled={busy || !recoveryId.trim()} onClick={recoverRun}>RECOVER RUN</button></>}
-      {runId && run && <><p>Run #{runId.toString()} · Chamber {run.stage}/6 · Locked round {run.round.toString()}</p><p>Current claim: {formatUnits(run.credits, decimals)} {symbol} <button disabled={busy} onClick={syncRun}>REFRESH RUN</button></p>
-        {run.active && run.awaiting && <button disabled={busy} onClick={() => transact('resolve')}>RESOLVE WITH DRAND</button>}
-        {run.active && !run.awaiting && <><button disabled={busy} onClick={() => transact('cashOut')}>BANK CLAIM</button>{run.stage < 6 && [0, 1, 2].map(i => <button key={i} disabled={busy} onClick={() => transact('advance', i)} style={{ margin: 6 }}>NEXT DOOR {i + 1}</button>)}</>}
-        {!run.active && <button onClick={() => { localStorage.removeItem(runKey(wallet, game)); setRunId(undefined); setRun(undefined); }}>START A NEW RUN</button>}
-      </>}
-    </div>}
-    <p style={{ marginTop: 30, color: '#a7977c', fontSize: 13 }}>Test tokens have no monetary value here. This interface is gated until a testnet Registry, Router, token, and funded game contract are deployed and validated. Free play uses virtual multipliers and browser randomness; paid rounds use a future verified beacon.</p>
-  </main>;
+  return <div className="testnet-shell">
+    <header className="topbar">
+      <a className="brand" href="/" aria-label="Vaultbreaker home"><span className="brand-mark">◆</span><span>VAULT<span className="brand-accent">BREAKER</span></span></a>
+      <nav className="topnav" aria-label="Game navigation"><span className={'mode-pill' + (configured ? '' : ' gated')}><span className="status-dot" /> TESTNET {configured ? 'LIVE' : 'GATED'}</span><a href="/">Free play</a></nav>
+    </header>
+    <main className="testnet-main">
+      <section className="hero testnet-hero" aria-labelledby="testnet-title"><span className="eyebrow">ON-CHAIN MODE</span><h1 id="testnet-title">The vault, <em>on-chain.</em></h1><p>Test-token rounds settle against a future verified drand beacon. Connect a wallet when the testnet vault opens.</p></section>
+      <div className="testnet-grid">
+        <section className="testnet-panel" aria-label="Testnet game">
+          <span className="section-kicker">TESTNET ACCESS</span>
+          <h2>{configured ? 'Enter the testnet vault' : 'The vault is gated'}</h2>
+          <p className="testnet-lead">{configured ? 'Every action requires wallet confirmation and testnet gas.' : 'Contract deployment and validation are still in progress. Test-token entries are unavailable.'}</p>
+          {!configured && <div className="testnet-gate"><strong>Play is temporarily unavailable</strong><p>The game will open here once the testnet token, Registry, Router, and funded game contract are deployed and verified.</p></div>}
+          <p className="testnet-message" aria-live="polite">{message || (configured ? 'Connect a wallet to begin.' : 'Free play is available now.')}</p>
+          <button className="primary-button" disabled={busy || !configured} onClick={connect}>{wallet ? `Wallet ${wallet.slice(0, 6)}…${wallet.slice(-4)}` : 'Connect wallet'}</button>
+          {wallet && <div className="testnet-wallet">
+            <div className="testnet-data"><div><span>ENTRY PER RUN</span><strong>{entry !== undefined ? formatUnits(entry, decimals) : '…'} {symbol}</strong></div><div><span>WALLET BALANCE</span><strong>{balance !== undefined ? formatUnits(balance, decimals) : '…'} {symbol}</strong></div></div>
+            <div className="testnet-actions"><button className="secondary-button" disabled={busy} onClick={claimFaucet}>Claim test tokens</button></div>
+            {paused && <p className="testnet-warning" role="status">New entries are paused. Existing runs can still resolve and bank their claims.</p>}
+            {!runId && <div className="testnet-run"><span className="section-kicker">NEW RUN</span><h3>Choose your first door</h3><div className="testnet-actions">{[0, 1, 2].map(i => <button className="secondary-button" key={i} disabled={busy || paused} onClick={() => transact('start', i)}>Door {i + 1}</button>)}</div><p>Continuing a run from another browser? Enter the run ID from your start transaction.</p><div className="testnet-actions"><input className="testnet-input" aria-label="Run ID" inputMode="numeric" value={recoveryId} onChange={event => setRecoveryId(event.target.value)} /><button className="secondary-button" disabled={busy || !recoveryId.trim()} onClick={recoverRun}>Recover run</button></div></div>}
+            {runId && run && <div className="testnet-run"><span className="section-kicker">ACTIVE RUN</span><h3>Run #{runId.toString()}</h3><div className="testnet-data"><div><span>CHAMBER</span><strong>{run.stage} / 6</strong></div><div><span>CURRENT CLAIM</span><strong>{formatUnits(run.credits, decimals)} {symbol}</strong></div></div><p>Locked beacon round: {run.round.toString()}</p><div className="testnet-actions"><button className="secondary-button" disabled={busy} onClick={syncRun}>Refresh run</button>{run.active && run.awaiting && <button className="primary-button" disabled={busy} onClick={() => transact('resolve')}>Resolve with drand</button>}{run.active && !run.awaiting && <button className="primary-button" disabled={busy} onClick={() => transact('cashOut')}>Bank claim</button>}</div>{run.active && !run.awaiting && run.stage < 6 && <><p>Or choose the next door:</p><div className="testnet-actions">{[0, 1, 2].map(i => <button className="secondary-button" key={i} disabled={busy} onClick={() => transact('advance', i)}>Door {i + 1}</button>)}</div></>}{!run.active && <button className="primary-button" onClick={() => { localStorage.removeItem(runKey(wallet, game)); setRunId(undefined); setRun(undefined); }}>Start a new run</button>}</div>}
+          </div>}
+          <p className="testnet-note">Test tokens have no monetary value. Free play uses virtual multipliers and browser randomness; testnet rounds use a future verified beacon.</p>
+        </section>
+        <aside className="testnet-aside" aria-label="Testnet rules"><div className="testnet-card"><span className="section-kicker">ROUND RULES</span><h3>Three doors. One choice.</h3><div className="fact"><span>Entry</span><strong>1 test token</strong></div><div className="fact"><span>Operator fee</span><strong>10%</strong></div><div className="fact"><span>Cache</span><strong>1.10×</strong></div><div className="fact"><span>Relic</span><strong>1.50×</strong></div><div className="fact"><span>Trap</span><strong>Claim lost</strong></div></div><div className="testnet-card"><span className="section-kicker">VERIFIABLE OUTCOMES</span><h3>Future beacon</h3><p>The chosen door locks to a future drand round before its outcome is known. Resolve the round to reveal the result on-chain.</p></div></aside>
+      </div>
+    </main>
+    <footer className="site-footer"><span>ROBINHOOD TESTNET · TEST TOKENS ONLY · WALLET CONFIRMATION REQUIRED</span><a href="/">Play the free game</a></footer>
+  </div>;
 }
