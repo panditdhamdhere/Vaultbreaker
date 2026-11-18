@@ -24,3 +24,9 @@ Open `http://localhost:3000`. `npm run build` checks TypeScript and produces a s
 This first release is **free play**. Outcomes use browser cryptographic randomness. Scores are local and are not tamper-resistant. There are no wallets, entry fees, payouts, or smart contract interactions. The UI makes that boundary visible.
 
 A future value-transfer version requires a separate game contract or authoritative service to lock player choices and a future drand round before that round's scheduled publication, settle using the verified output of [EqualFi Drand Registry](https://github.com/EqualFiLabs/drand-registry), and account for any supported ERC-20 revenue before routing an agreed share through [Operator Fee Router](https://github.com/EqualFiLabs/operator-fee-router). Those features are not implied by this release.
+
+## Paid testnet work
+
+`contracts/Vaultbreaker.sol` and `app/testnet` prepare a paid test-token flow on Robinhood Testnet. The route remains gated until verified contract addresses are configured. See [the proposed economics and deployment dependencies](docs/paid-testnet.md). Run `forge test --offline` for the contract's focused tests.
+
+The [wallet deployment handoff](docs/testnet-deployment.md) covers a fresh Registry, test token, Operator Router, game contract, bankroll, and testnet validation. It does not broadcast transactions or include signing credentials.

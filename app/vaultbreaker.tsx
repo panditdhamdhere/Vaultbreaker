@@ -59,6 +59,6 @@ export default function Game() {
         {resolved && <div className="decision"><button className="bank" onClick={bank}>BANK {g.haul.toLocaleString()} POINTS</button><button className="push" onClick={continueRun}>GO DEEPER <span>→</span></button></div>}
       </section>
       <aside className="stats"><div className="stat main-stat"><span>UNBANKED HAUL</span><strong>{g.haul.toLocaleString()}</strong><small>POINTS AT RISK</small></div><div className="stat"><span>CHAMBER REWARD</span><strong>{rewards[g.chamber - 1].toLocaleString()}<small> BASE</small></strong><div>RELIC FINDS PAY <b>2×</b></div></div><div className="stat"><span>BEST BANKED RUN</span><strong>{g.best.toLocaleString()}</strong><div>STORED ON THIS DEVICE</div></div><div className="odds"><b>THE ODDS</b><div><span>SAFE DOOR</span><strong>2 IN 3</strong></div><div><span>TRAP DOOR</span><strong>1 IN 3</strong></div><p>Each chamber generates a fresh set of doors. The scanner reveals the trap once per run.</p></div></aside>
-    </main><footer>FREE-PLAY GAME DEMO · NO WALLET, ENTRY FEE OR PAYOUT · RESULTS USE BROWSER RANDOMNESS AND ARE NOT ON-CHAIN VERIFIED.</footer>
+    </main><footer>FREE-PLAY GAME DEMO · NO WALLET, ENTRY FEE OR PAYOUT · RESULTS USE BROWSER RANDOMNESS AND ARE NOT ON-CHAIN VERIFIED. <a href="/testnet" style={{ color: '#e5bd78', marginLeft: 12 }}>TESTNET STATUS →</a></footer>
   </div>;
 }
